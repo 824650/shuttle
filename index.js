@@ -2,6 +2,7 @@ import createBareServer from '@tomphttp/bare-server-node';
 import http from 'node:http';
 import { createRequire } from 'module';
 import express from 'express';
+
 const require = createRequire(import.meta.url);
 const port = process.env.PORT || 80;
 
@@ -13,10 +14,18 @@ async function main() {
 
   // Set view engine to ejs
   app.set('view engine', 'ejs')
-  
+
   // Set up caching for static files
   const cacheOptions = { maxAge: 86400000 }; // Cache static files for 1 day (in milliseconds)
   app.use(express.static('./public', cacheOptions));
+
+// Log middleware
+app.use((req, res, next) => {
+  const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - IP: ${ipAddress}`);
+  next();
+});
+
 
   // Use route handling middleware for Express
   app.use((req, res, next) => {
